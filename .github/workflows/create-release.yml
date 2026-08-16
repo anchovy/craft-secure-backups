@@ -1,0 +1,34 @@
+# Creates a GitHub Release whenever the Craft Plugin Store picks up a new version tag.
+#
+# The Store notifies this repository with a `repository_dispatch` event once it has recorded a
+# release, and passes the version, tag and the notes it parsed out of CHANGELOG.md. Nothing here
+# runs on a normal push: tagging and pushing stays the trigger, and this only fills in the
+# GitHub Releases page afterwards so it does not sit empty.
+#
+# This file has to live on the default branch for `repository_dispatch` to reach it.
+
+name: Create Release
+run-name: Create release for ${{ github.event.client_payload.version }}
+
+on:
+  repository_dispatch:
+    types:
+      - craftcms/new-release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    # Creating a release is a write to repository contents, and the default token is read-only.
+    permissions:
+      contents: write
+
+    steps:
+      - name: Create the GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.event.client_payload.tag }}
+          name: ${{ github.event.client_payload.version }}
+          body: ${{ github.event.client_payload.notes }}
+          makeLatest: ${{ github.event.client_payload.latest }}
+          prerelease: ${{ github.event.client_payload.prerelease }}
