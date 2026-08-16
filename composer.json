@@ -1,0 +1,78 @@
+{
+    "name": "anchovyx/craft-secure-backups",
+    "description": "Compresses and encrypts every Craft database backup, including the Control Panel utility, and reverses both automatically on craft db/restore.",
+    "type": "craft-plugin",
+    "license": "proprietary",
+    "keywords": [
+        "craftcms",
+        "craft-plugin",
+        "backup",
+        "database",
+        "security",
+        "encryption",
+        "encryption-at-rest",
+        "openssl",
+        "aes-256",
+        "compression",
+        "gzip"
+    ],
+    "authors": [
+        {
+            "name": "Anchovy",
+            "homepage": "https://anchovy.nz"
+        }
+    ],
+    "support": {
+        "docs": "https://github.com/anchovy/craft-secure-backups/blob/main/README.md",
+        "issues": "https://github.com/anchovy/craft-secure-backups/issues",
+        "source": "https://github.com/anchovy/craft-secure-backups",
+        "email": "ben@anchovy.nz"
+    },
+    "require": {
+        "php": ">=8.0.2",
+        "craftcms/cms": "^4.3.5|^5.0.0"
+    },
+    "require-dev": {
+        "craftcms/ecs": "dev-main",
+        "craftcms/phpstan": "dev-main",
+        "phpunit/phpunit": "^9.6 || ^10.5 || ^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "anchovy\\securebackups\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "anchovy\\securebackups\\tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "handle": "secure-backups",
+        "name": "Secure Backups",
+        "description": "Compresses and encrypts every database backup Craft produces, making it several times smaller, and reverses both transparently when one is restored.",
+        "class": "anchovy\\securebackups\\SecureBackups",
+        "developer": "Anchovy",
+        "developerUrl": "https://anchovy.nz",
+        "documentationUrl": "https://github.com/anchovy/craft-secure-backups",
+        "changelogUrl": "https://raw.githubusercontent.com/anchovy/craft-secure-backups/main/CHANGELOG.md"
+    },
+    "scripts": {
+        "check-cs": "ecs check --ansi",
+        "fix-cs": "ecs check --fix --ansi",
+        "phpstan": "phpstan --memory-limit=1G",
+        "test": "phpunit",
+        "ci": [
+            "@check-cs",
+            "@phpstan",
+            "@test"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "craftcms/plugin-installer": true,
+            "yiisoft/yii2-composer": true
+        },
+        "sort-packages": true
+    }
+}

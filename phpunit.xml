@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Kept minimal on purpose: this configuration has to parse under PHPUnit 9, 10 and 11,
+    because the CI matrix spans PHP 8.0 (where only PHPUnit 9 runs) through PHP 8.4.
+-->
+<phpunit bootstrap="tests/bootstrap.php"
+         colors="true"
+         failOnWarning="true"
+         failOnRisky="true">
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/unit</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

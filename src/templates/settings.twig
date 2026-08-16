@@ -1,0 +1,123 @@
+{# ========================================================================= #}
+{# Secure Backups settings                                                   #}
+{# ========================================================================= #}
+
+{% import "_includes/forms" as forms %}
+
+{% if not opensslVersion %}
+    {% set opensslWarning %}
+        The `openssl` command could not be run on this server. Secure Backups needs it to
+        encrypt and decrypt backups, and will refuse to create a backup until it is available.
+    {% endset %}
+    <p class="error">{{ opensslWarning|md }}</p>
+{% endif %}
+
+{% if settings.enabled and not keyIsSet %}
+    {% set keyWarning %}
+        No encryption key found. Set the `{{ settings.keyEnvVar }}` environment variable on every
+        environment that takes backups. Until then, backups will fail rather than be written
+        unencrypted.
+    {% endset %}
+    <p class="warning">{{ keyWarning|md }}</p>
+{% endif %}
+
+{% if settings.compress and not gzipVersion %}
+    {% set gzipWarning %}
+        The `gzip` command could not be run on this server. Secure Backups needs it to compress
+        backups before encrypting them, and to decompress them again on restore.
+    {% endset %}
+    <p class="warning">{{ gzipWarning|md }}</p>
+{% endif %}
+
+{% if settings.enabled and keyIsSet and opensslVersion %}
+    <p class="success">{{ "Backups on this environment are being encrypted."|t('secure-backups') }}</p>
+{% endif %}
+
+{{ forms.lightswitchField({
+    label: "Encrypt backups"|t('secure-backups'),
+    instructions: "Encrypt every database backup Craft creates, including the Database Backup utility, `craft db/backup`, and the automatic backups taken before migrations."|t('secure-backups'),
+    id: 'enabled',
+    name: 'enabled',
+    on: settings.enabled,
+    errors: settings.getErrors('enabled'),
+    disabled: readOnly,
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Key environment variable"|t('secure-backups'),
+    instructions: "The name of the environment variable holding the encryption key. The key itself is never stored in project config, so it can differ per environment."|t('secure-backups'),
+    id: 'keyEnvVar',
+    name: 'keyEnvVar',
+    value: settings.keyEnvVar,
+    suggestEnvVars: false,
+    errors: settings.getErrors('keyEnvVar'),
+    disabled: readOnly,
+}) }}
+
+{{ forms.lightswitchField({
+    label: "Compress backups"|t('secure-backups'),
+    instructions: "Gzip each backup before encrypting it, which typically makes it several times smaller. Compressing afterwards would save nothing, because encrypted data does not compress. Safe to turn off: existing compressed backups still restore."|t('secure-backups'),
+    id: 'compress',
+    name: 'compress',
+    on: settings.compress,
+    errors: settings.getErrors('compress'),
+    disabled: readOnly,
+}) }}
+
+{{ forms.selectField({
+    label: "Restoring an unencrypted backup"|t('secure-backups'),
+    instructions: "What to do when the backup being restored is not encrypted. `Ask first` refuses when there is nobody to ask, so unattended runs never load an unvouched-for dump."|t('secure-backups'),
+    id: 'unencryptedRestore',
+    name: 'unencryptedRestore',
+    value: settings.unencryptedRestore,
+    options: [
+        { label: "Ask first"|t('secure-backups'), value: 'prompt' },
+        { label: "Always refuse"|t('secure-backups'), value: 'deny' },
+        { label: "Allow without asking"|t('secure-backups'), value: 'allow' },
+    ],
+    errors: settings.getErrors('unencryptedRestore'),
+    disabled: readOnly,
+}) }}
+
+{{ forms.lightswitchField({
+    label: "Fail if a backup cannot be encrypted"|t('secure-backups'),
+    instructions: "Recommended. When encryption is not possible, delete the plaintext dump and fail loudly rather than leaving an unencrypted copy of the database on disk."|t('secure-backups'),
+    id: 'failIfUnableToEncrypt',
+    name: 'failIfUnableToEncrypt',
+    on: settings.failIfUnableToEncrypt,
+    errors: settings.getErrors('failIfUnableToEncrypt'),
+    disabled: readOnly,
+}) }}
+
+<a class="fieldtoggle" data-target="advanced">{{ "Advanced"|t('secure-backups') }}</a>
+
+<div id="advanced" class="hidden">
+    {{ forms.textField({
+        label: "Cipher"|t('secure-backups'),
+        instructions: "The `openssl enc` cipher used for new backups. Changing this does not re-encrypt existing backups; set it back to restore them."|t('secure-backups'),
+        id: 'cipher',
+        name: 'cipher',
+        value: settings.cipher,
+        errors: settings.getErrors('cipher'),
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.textField({
+        label: "Timeout"|t('secure-backups'),
+        instructions: "How long to wait for `openssl`, in seconds, before killing it. Raise this if you have a very large database."|t('secure-backups'),
+        id: 'timeout',
+        name: 'timeout',
+        type: 'number',
+        value: settings.timeout,
+        errors: settings.getErrors('timeout'),
+        disabled: readOnly,
+    }) }}
+
+    {% if opensslVersion %}
+        <p class="light">{{ "Detected: {version}"|t('secure-backups', { version: opensslVersion }) }}</p>
+    {% endif %}
+
+    {% if gzipVersion %}
+        <p class="light">{{ "Detected: {version}"|t('secure-backups', { version: gzipVersion }) }}</p>
+    {% endif %}
+</div>

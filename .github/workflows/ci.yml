@@ -1,0 +1,122 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Craft ${{ matrix.craft-label }} / PHP ${{ matrix.php }} / ${{ matrix.dependencies }} deps
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The declared floor, resolved to the oldest versions the constraints allow.
+          # This is what actually proves `craftcms/cms: ^4.3.5` and `php: >=8.0.2` are
+          # honest, rather than aspirational.
+          - { craft: '^4.3.5', craft-label: '4', php: '8.0', dependencies: lowest }
+          - { craft: '^4.3.5', craft-label: '4', php: '8.0', dependencies: highest }
+          - { craft: '^4.3.5', craft-label: '4', php: '8.3', dependencies: highest }
+          # Craft 5's own floor is PHP 8.2.
+          - { craft: '^5.0.0', craft-label: '5', php: '8.2', dependencies: lowest }
+          - { craft: '^5.0.0', craft-label: '5', php: '8.2', dependencies: highest }
+          - { craft: '^5.0.0', craft-label: '5', php: '8.4', dependencies: highest }
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: Set up PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: bcmath, curl, dom, iconv, intl, json, mbstring, openssl, pdo, pdo_mysql, zip
+          coverage: none
+          tools: composer:v2
+
+      # The plugin shells out to both of these. The suite asserts they are detected,
+      # including the fact that GNU gzip reports --version on stdout while Apple's
+      # uses stderr, so it is worth showing what the runner actually has.
+      - name: Show required binaries
+        run: |
+          openssl version
+          gzip --version 2>&1 | head -1
+
+      # Craft 4.18.x pins twig/twig to ~3.19.0, and v3.19.0 is the only release in that
+      # range. It carries published security advisories, and recent Composer versions
+      # refuse to load an advisory-affected package at all, which makes the entire
+      # Craft 4 line unresolvable here. Relaxed in Composer's global config rather than
+      # in composer.json, so the shipped manifest stays untouched: this changes what CI
+      # is able to resolve, never what a site installs.
+      - name: Allow advisory-affected transitive dependencies
+        run: composer config --global policy.advisories.block false
+
+      - name: Resolve Craft ${{ matrix.craft }} (${{ matrix.dependencies }})
+        run: |
+          composer update --no-interaction --no-progress --prefer-dist \
+            ${{ matrix.dependencies == 'lowest' && '--prefer-lowest' || '' }} \
+            --with "craftcms/cms:${{ matrix.craft }}"
+
+      # `composer show` takes one package plus an optional version, so naming two
+      # packages makes it read the second as a version constraint. Listing the direct
+      # requirements shows Craft and PHPUnit together without that trap.
+      - name: Show resolved versions
+        run: composer show --direct --no-interaction
+
+      - name: Code style
+        run: composer check-cs
+
+      - name: Static analysis
+        run: composer phpstan
+
+      - name: Tests
+        run: composer test
+
+  package:
+    name: Package integrity
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: composer:v2
+
+      # Publish checks included deliberately: they are what catch a dev constraint
+      # drifting into `require`, or metadata the Plugin Store needs going missing.
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      # Guards the .gitattributes export-ignore rules. Everything listed here is
+      # developer-only and must never reach a site that runs `composer require`.
+      - name: Assert dev files are excluded from the release archive
+        run: |
+          git archive --format=tar HEAD > /tmp/dist.tar
+          echo "--- files in the release archive ---"
+          tar -tf /tmp/dist.tar
+          for path in .github/ tests/ dev/ notes/ ecs.php phpstan.neon phpunit.xml CLAUDE.md; do
+            if tar -tf /tmp/dist.tar | grep -q "^${path}"; then
+              echo "ERROR: '${path}' leaked into the release archive; check .gitattributes"
+              exit 1
+            fi
+          done
+          echo "OK: no developer-only files in the release archive"
+
+      - name: Assert the changelog is in the format Craft parses
+        run: |
+          # Craft reads this file from `extra.changelogUrl` to show release notes, and
+          # only recognises `## X.Y.Z - YYYY-MM-DD` headings.
+          if ! grep -qE '^## [0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)? - [0-9]{4}-[0-9]{2}-[0-9]{2}$' CHANGELOG.md; then
+            echo "ERROR: CHANGELOG.md has no heading matching '## X.Y.Z - YYYY-MM-DD'"
+            exit 1
+          fi
+          echo "OK: changelog headings are parseable"
