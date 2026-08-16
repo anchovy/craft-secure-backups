@@ -17,10 +17,12 @@ Hooks the backup pipeline Craft already has rather than adding a parallel one, s
 Panel utility, `craft db/backup` and the automatic backups taken before migrations are all
 covered. Nothing changes about how you or your client take a backup.
 
-**Encrypted at rest**
+**Encrypted at rest, and in transit**
 Each dump is encrypted in place with AES-256-CBC and PBKDF2 key derivation as soon as Craft
-writes it. If encryption cannot be completed, the plaintext is deleted and the backup fails
-loudly rather than leaving a readable copy of the database on disk.
+writes it, so it is already ciphertext before it is downloaded, synced offsite or copied
+anywhere. Unlike transport encryption, which stops protecting a file the moment it arrives, the
+backup stays encrypted at every destination. If encryption cannot be completed, the plaintext is
+deleted and the backup fails loudly rather than leaving a readable copy of the database on disk.
 
 **Decrypts on restore, inside a pipe**
 `craft db/restore` decrypts automatically, feeding the database client directly, so the plaintext
@@ -66,12 +68,14 @@ without this plugin the honest answer for a stock Craft site is no.
 encryption cannot be completed, the plaintext dump is deleted and the backup fails loudly, so a
 failure never quietly leaves an unencrypted copy of the database behind.
 
-**In transit.** Because the file is encrypted before it leaves the server, it stays encrypted
-wherever it goes: downloaded through the Control Panel, synced to S3 or Backblaze, copied onto a
-laptop, attached to a ticket. The payload is never plaintext in motion, independently of whatever
-transport carries it. Transport-level security such as HTTPS and SSH remains your host's
-responsibility; what this guarantees is that the thing being transported is not a readable
-database dump.
+**In transit.** The backup is encrypted before it ever leaves the server, so it is encrypted in
+transit by construction: downloaded through the Control Panel, synced to S3 or Backblaze, copied
+onto a laptop, attached to a ticket. Intercept it anywhere along the way and you have ciphertext.
+
+This is a stronger guarantee than transport encryption alone. TLS protects a file only while it
+is moving, and stops protecting it the moment it arrives; a backup secured only by HTTPS is a
+readable database dump again as soon as it lands. These backups are encrypted at the origin, in
+flight, and at rest at every destination, with the same key and the same cipher throughout.
 
 **On restore**, decryption happens inside a pipe feeding the database client directly, so the
 plaintext SQL is never written to disk at all.
