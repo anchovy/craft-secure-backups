@@ -1,5 +1,11 @@
 # Release Notes for Secure Backups
 
+## 1.0.1 - 2026-08-16
+
+### Changed
+- New plugin icon, following the Plugin Store convention of a solid tile with a white glyph.
+- The README no longer names a price. The Plugin Store listing is the source of truth for that.
+
 ## 1.0.0 - 2026-08-16
 
 ### Added
