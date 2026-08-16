@@ -8,6 +8,44 @@ not ship to sites.
 > Compresses and encrypts every database backup Craft produces, making it several times smaller,
 > and reverses both transparently when one is restored.
 
+## Features
+
+Repeatable name + description pairs on the listing.
+
+**Every backup, automatically**
+Hooks the backup pipeline Craft already has rather than adding a parallel one, so the Control
+Panel utility, `craft db/backup` and the automatic backups taken before migrations are all
+covered. Nothing changes about how you or your client take a backup.
+
+**Encrypted at rest**
+Each dump is encrypted in place with AES-256-CBC and PBKDF2 key derivation as soon as Craft
+writes it. If encryption cannot be completed, the plaintext is deleted and the backup fails
+loudly rather than leaving a readable copy of the database on disk.
+
+**Decrypts on restore, inside a pipe**
+`craft db/restore` decrypts automatically, feeding the database client directly, so the plaintext
+SQL is never written to disk at all.
+
+**Several times smaller**
+Backups are gzipped before they are encrypted, which is the only order that saves anything:
+encrypted data does not compress. A 101 KB dump from a real Craft 5 site becomes 17 KB.
+
+**Recoverable without this plugin**
+The format is standard gzip inside standard `openssl enc` output. One command restores any backup
+on any machine, with no Craft installed and no copy of this plugin. Your backups are never
+hostage to software you might not have later.
+
+**The key never reaches the process list**
+Anything on a command line is visible to any user who can run `ps`, so the key is passed on
+standard input when creating a backup and through a transient environment variable when restoring
+one. Only the *name* of the environment variable holding it is stored in project config, so the
+key itself never enters version control and can differ per environment.
+
+**Refuses restores nobody vouched for**
+Prompts before restoring a backup that is not encrypted, and refuses outright when there is
+nobody to ask, so cron jobs, CI and deploy scripts never load a dump of unknown provenance on
+your behalf.
+
 ## Long description
 
 Every Craft site takes database backups, and by default every one of them is plain SQL: a
