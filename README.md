@@ -247,11 +247,12 @@ Restoring over a database that already has the plugin installed works normally.
 
 ## License
 
-Commercial. $49 per Craft installation, through the [Craft Plugin Store][store], including one
-year of updates. Development, staging and testing installations that support a licensed
-production site are covered by that licence at no extra cost.
+Commercial, licensed per Craft installation through the [Craft Plugin Store][store], including
+one year of updates. Development, staging and testing installations that support a licensed
+production site are covered at no extra cost.
 
-See [LICENSE.md](LICENSE.md) for the full terms.
+See the [Plugin Store listing][store] for current pricing, and [LICENSE.md](LICENSE.md) for the
+full terms.
 
 Note that nothing in the licence restricts what you can do with the backups themselves. They are
 plain `gzip` inside plain `openssl enc` precisely so you can always recover them yourself, with

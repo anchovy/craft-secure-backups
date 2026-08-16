@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Anchovy">
+  <g fill="#0E5C63">
+    <path d="M13 32C23 23 41 21 52 26c4 2 6 4 6 6s-2 4-6 6c-11 5-29 3-39-6z"/>
+    <path d="M13 32 1 23l3.5 9L1 41z"/>
+  </g>
+  <circle cx="48" cy="29.5" r="2.3" fill="#fff"/>
+</svg>
