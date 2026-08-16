@@ -1,5 +1,13 @@
 # Release Notes for Secure Backups
 
+## 1.0.2 - 2026-08-16
+
+### Changed
+- Now uses the Craft License, matching the Plugin Store listing. Terms are unchanged in
+  substance: the plugin remains commercial and licensed per production installation.
+- Backups created by any version stay recoverable with standard `openssl` and `gzip` commands,
+  with no Craft and no copy of the plugin. See the README.
+
 ## 1.0.1 - 2026-08-16
 
 ### Changed
