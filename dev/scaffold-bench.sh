@@ -30,9 +30,8 @@ PLUGIN_PACKAGE="$(php -r 'echo json_decode(file_get_contents("'"$PLUGIN_DIR"'/co
 # benches also prove the plugin runs on an older PHP than this machine's default, not
 # just a newer one.
 #
-# INSTALLS_PLUGIN is off for 6 because the plugin does not support Craft 6 yet: it is
-# built on Yii APIs that Craft 6 replaced with Laravel equivalents. That bench exists
-# to explore the port, not to run the current plugin.
+# INSTALLS_PLUGIN is off for 6: this plugin is built on Yii APIs that Craft 6 replaced
+# with Laravel equivalents, so none of the classes it imports exist there.
 STABILITY_FLAG=''
 INSTALLS_PLUGIN=1
 DOCROOT='web'
@@ -201,8 +200,8 @@ if [ "$INSTALLS_PLUGIN" -eq 0 ]; then
     echo "    Directory     : $BENCH_DIR"
     echo
     echo "    $PLUGIN_PACKAGE is not installed here: it targets Craft 4 and 5, which are"
-    echo "    built on Yii. Craft 6 replaced that with Laravel, so the plugin needs a port"
-    echo "    rather than a widened version constraint. This bench is for working on it."
+    echo "    built on Yii. Craft 6 replaced that with Laravel, so none of the classes the"
+    echo "    plugin imports exist on this bench."
     exit 0
 fi
 

@@ -88,9 +88,6 @@ replaced Yii with Laravel, and the entire `craft\` namespace it imports from is 
 Settings → Plugins screen on that bench is expected. It also needs **DDEV v1.25.0 or newer**,
 which is where PHP 8.5 support landed.
 
-Craft 6 is in alpha, so port work is parked. Findings and Craft 6 specific how-tos are kept in
-`notes/`, which is deliberately untracked.
-
 Benches live **outside this repository** on purpose. They are shared infrastructure:
 one pair of Craft installs can host every plugin you develop, and nesting them inside
 one plugin's folder would tie their lifetime to that plugin. Override the location with

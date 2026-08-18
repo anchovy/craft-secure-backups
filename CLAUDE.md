@@ -45,17 +45,11 @@ See `dev/README.md` for the CI matrix and the DDEV benches used for the interact
 
 ## Craft 6
 
-Craft 6 is a Laravel rewrite, in alpha and shipping most weeks. It replaces the entire `craft\`
-namespace with `CraftCms\Cms\`, so **do not widen `craftcms/cms` to `^6.0`**: supporting it means
-a separate major version of this plugin, not a constraint change. Craft 6 does not encrypt
-backups itself, so the plugin still has a job there.
+Craft 6 replaces Yii with Laravel and the entire `craft\` namespace with `CraftCms\Cms\`, so
+**do not widen `craftcms/cms` to `^6.0`**. Every class this plugin imports is gone there, which
+makes support a separate major version of the plugin rather than a constraint change.
 
-Port work is parked until Craft 6 reaches beta, since APIs are still moving. The analysis and
-bench how-tos live in `notes/`, which is untracked by design. If `notes/` is absent (a fresh
-clone), that knowledge is not in this repository and will need redoing.
-
-`./dev/scaffold-bench.sh 6` builds a Craft 6 bench. It installs no plugin, because none of the
-Craft classes this one imports exist there.
+`./dev/scaffold-bench.sh 6` builds a Craft 6 bench. It installs no plugin, for the same reason.
 
 ## Architecture
 

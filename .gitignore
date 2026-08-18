@@ -3,7 +3,5 @@ composer.lock
 .DS_Store
 .phpunit.result.cache
 
-# Working notes that are real but not ready to publish: findings about unreleased
-# software, investigations, how-tos that would age badly in a public history.
-# See notes/README.md.
+# Local working notes.
 /notes
